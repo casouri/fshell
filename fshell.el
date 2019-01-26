@@ -169,34 +169,39 @@ Create new one if no fshell buffer exists."
   "Validate current command."
   ;; overlay is slow, so we use text property here
   (save-excursion
-    (forward-line 0) ; beginning-of-line but ignores boundaries
-    (re-search-forward (format "%s\\([^ \t\r\n\v\f]*\\)" fshell-prompt-regexp)
-                       (line-end-position)
-                       t)
-    (let ((beg (match-beginning 1))
-          (end (match-end 1))
-          (command (match-string 1)))
-      (when command
-        (put-text-property
-         beg end
-         'face (if (or
-                    ;; Command exists?
-                    (executable-find command)
-                    ;; Or command is an alias?
-                    ;; TODO
-                    ;; (seq-contains (eshell-alias-completions "") command)
-                    ;; Or  ../. ?
-                    (or (equal command "..")
-                        (equal command ".")
-                        (equal command "exit"))
-                    ;; Or a file in current dir?
-                    (member (file-name-base command) (directory-files default-directory))
-                    ;; Or a elisp function?
-                    (functionp (intern command)))
-                   'fshell-valid-command-face
-                 'fshell-invalid-command-face))
-        (put-text-property beg end 'rear-nonsticky t)
-        command))))
+
+    (let ((inhibit-field-text-motion t))
+      ;; otherwise beginning of line and line end position
+      ;; doesn't work right
+      (beginning-of-line)
+      (let ((match (re-search-forward
+                    (format "%s\\(.*?\\)[ \t\r\n\v\f]" fshell-prompt-regexp)
+                    (line-end-position)
+                    t)))
+        (when match
+          (let ((beg (match-beginning 1))
+                (end (match-end 1))
+                (command (match-string 1)))
+            (put-text-property
+             beg end
+             'face (if (or
+                        ;; Command exists?
+                        (executable-find command)
+                        ;; Or command is an alias?
+                        ;; TODO
+                        ;; (seq-contains (eshell-alias-completions "") command)
+                        ;; Or  ../. ?
+                        (or (equal command "..")
+                            (equal command ".")
+                            (equal command "exit"))
+                        ;; Or a file in current dir?
+                        (member (file-name-base command) (directory-files default-directory))
+                        ;; Or a elisp function?
+                        (functionp (intern command)))
+                       'fshell-valid-command-face
+                     'fshell-invalid-command-face))
+            (put-text-property beg end 'rear-nonsticky t)
+            command))))))
 
 ;;;;; Sync buffer name with current directory
 
