@@ -135,8 +135,7 @@ creating one."
   (switch-to-buffer (fshell-new)))
 
 (defun fshell-next ()
-  "Select next fshell buffer.
-Create new one if no fshell buffer exists."
+  "Select next fshell buffer."
   (interactive)
   (let ((buf (current-buffer)))
     (next-buffer)
@@ -145,8 +144,7 @@ Create new one if no fshell buffer exists."
       (next-buffer))))
 
 (defun fshell-prev ()
-  "Select previous fshell buffer.
-Create new one if no fshell buffer exists."
+  "Select previous fshell buffer."
   (interactive)
   (let ((buf (current-buffer)))
     (previous-buffer)
@@ -209,8 +207,6 @@ Create new one if no fshell buffer exists."
   "Change fshell buffer name by directory change."
   (rename-buffer (format "fshell @ %s" default-directory)
                  t))
-
-
 
 (provide 'fshell)
 
