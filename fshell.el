@@ -79,6 +79,7 @@
                                   (fshell-buffer-list)))))
   (switch-to-buffer buffer))
 
+;;;###autoload
 (defun fshell-toggle (&optional arg)
   "Toggle Fshell.
 
@@ -129,10 +130,13 @@ creating one."
         (fshell-mode)
         (current-buffer)))))
 
-(defun fshell ()
-  "Switch to a new fshell."
+(defun fshell (&optional dir)
+  "Switch to a new fshell, cd to DIR.
+If DIR is nil, use current directory."
   (interactive)
-  (switch-to-buffer (fshell-new)))
+  (let ((current-dir default-directory))
+    (switch-to-buffer (fshell-new))
+    (shell-cd (or dir current-dir))))
 
 (defun fshell-next ()
   "Select next fshell buffer."
