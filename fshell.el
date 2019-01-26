@@ -124,9 +124,10 @@ creating one."
   (let ((explicit-shell-file-name fshell-shell-file-name))
     (ignore explicit-shell-file-name)
     (save-excursion
-      (shell (generate-new-buffer "*fshell*"))
-      (fshell-mode)
-      (current-buffer))))
+      (save-window-excursion
+        (shell (generate-new-buffer "*fshell*"))
+        (fshell-mode)
+        (current-buffer)))))
 
 (defun fshell ()
   "Switch to a new fshell."
@@ -169,7 +170,6 @@ Create new one if no fshell buffer exists."
   "Validate current command."
   ;; overlay is slow, so we use text property here
   (save-excursion
-
     (let ((inhibit-field-text-motion t))
       ;; otherwise beginning of line and line end position
       ;; doesn't work right
