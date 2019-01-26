@@ -68,6 +68,12 @@
          'fshell-mode))
    (buffer-list)))
 
+(defun fshell--sloppy-cd (dir)
+  "Cd into DIR."
+  (goto-char (buffer-size))
+  (insert "cd " dir)
+  (comint-send-input))
+
 ;;;; Commands
 
 (defun fshell-switch-buffer (buffer)
@@ -115,7 +121,7 @@ creating one."
                                               (car buffer-list))
                                      (message "No valid fshell buffer found, create a new one.")
                                      (fshell-new)))
-                 (shell-cd dir))))
+                 (fshell--sloppy-cd dir))))
             ;; simply open
             (t (switch-to-buffer (or (car buffer-list)
                                      (fshell-new))))))))
@@ -136,7 +142,7 @@ If DIR is nil, use current directory."
   (interactive)
   (let ((current-dir default-directory))
     (switch-to-buffer (fshell-new))
-    (shell-cd (or dir current-dir))))
+    (fshell--sloppy-cd (or dir current-dir))))
 
 (defun fshell-next ()
   "Select next fshell buffer."
