@@ -42,6 +42,7 @@
 
 (define-derived-mode fshell-mode shell-mode
   "fshell" "Fake shell."
+  (setq-local comint-process-echoes t) ; remove echo
   (setq-local shell-prompt-pattern fshell-prompt-regexp)
   (setq-local comint-prompt-regexp fshell-prompt-regexp)
   (face-remap-set-base 'comint-highlight-prompt :inherit nil :weight 'bold)
