@@ -40,8 +40,13 @@
 (defvar fshell-shell-file-name "zsh"
   "The shell used in fshell-mode.")
 
+(defvar fshell--which-path (concat (file-name-directory (or load-file-name buffer-file-name))
+                                   "fshell-which.sh")
+  "Path to `fshell-which.sh'.")
+
 (define-derived-mode fshell-mode shell-mode
   "fshell" "Fake shell."
+  (fshell--prepare-which)
   (setq-local comint-process-echoes t) ; remove echo
   (setq-local shell-prompt-pattern fshell-prompt-regexp)
   (setq-local comint-prompt-regexp fshell-prompt-regexp)
@@ -77,6 +82,14 @@
   (goto-char (buffer-size))
   (insert "cd " dir)
   (comint-send-input))
+
+(defun fshell--prepare-which ()
+  "Prepare the `which' command used to determine command validness."
+  (with-temp-buffer
+    (insert (format "#!%s\nwhich $1" (executable-find fshell-shell-file-name)))
+    (write-region 1 (1+ (buffer-size)) fshell--which-path))
+  nil)
+
 
 ;;;; Commands
 
@@ -197,19 +210,18 @@ If DIR is nil, use current directory."
             (put-text-property
              beg end
              'font-lock-face (if (or
-                                  ;; Command exists?
+                                  ;; Command exists or is an alias?
+                                  (eq (call-process fshell--which-path nil nil nil command) 0)
                                   (executable-find command)
-                                  ;; Or command is an alias?
-                                  ;; TODO
-                                  ;; (seq-contains (eshell-alias-completions "") command)
                                   ;; Or  ../. ?
                                   (or (equal command "..")
-                                      (equal command ".")
-                                      (equal command "exit"))
+                                      (equal command "."))
                                   ;; Or a file in current dir?
                                   (member (file-name-base command) (directory-files default-directory))
                                   ;; Or a elisp function?
-                                  (functionp (intern command)))
+                                  ;; not valid for fshell
+                                  ;; (functionp (intern command))
+                                  )
                                  'fshell-valid-command-face
                                'fshell-invalid-command-face))
             (put-text-property beg end 'rear-nonsticky t)
