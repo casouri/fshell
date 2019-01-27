@@ -26,11 +26,13 @@
 (defface fshell-valid-command-face
   '((((background dark)) (:foreground "green"))
     (((background light)) (:foreground "DarkGreen")))
-  "Face of a valid command in `fshell-mode.'")
+  "Face of a valid command in `fshell-mode.'"
+  :group 'fshell)
 
 (defface fshell-invalid-command-face
   '((t (:inherit 'error)))
-  "Face of a valid command in `fshell-mode.'")
+  "Face of a valid command in `fshell-mode.'"
+  :group 'fshell)
 
 (defvar fshell-prompt-regexp "^.*> "
   "The regexp pattern that matches prompt.")
@@ -42,7 +44,8 @@
   "fshell" "Fake shell."
   (setq-local shell-prompt-pattern fshell-prompt-regexp)
   (setq-local comint-prompt-regexp fshell-prompt-regexp)
-  (face-remap-set-base 'comint-highlight-prompt :inherit nil)
+  (face-remap-set-base 'comint-highlight-prompt :inherit nil :weight 'bold)
+  (face-remap-set-base 'comint-highlight-input :weight 'normal)
   (esh-autosuggest-companyless-mode)
   (add-hook 'post-command-hook #'fshell-validate-command t t)
   (fshell-sync-dir-buffer-name)
@@ -183,7 +186,7 @@ If DIR is nil, use current directory."
       ;; doesn't work right
       (beginning-of-line)
       (let ((match (re-search-forward
-                    (format "%s\\(.*?\\)[ \t\r\n\v\f]" fshell-prompt-regexp)
+                    (format "%s\\([^ \t\r\n\v\f]*\\)" fshell-prompt-regexp)
                     (line-end-position)
                     t)))
         (when match
@@ -192,22 +195,22 @@ If DIR is nil, use current directory."
                 (command (match-string 1)))
             (put-text-property
              beg end
-             'face (if (or
-                        ;; Command exists?
-                        (executable-find command)
-                        ;; Or command is an alias?
-                        ;; TODO
-                        ;; (seq-contains (eshell-alias-completions "") command)
-                        ;; Or  ../. ?
-                        (or (equal command "..")
-                            (equal command ".")
-                            (equal command "exit"))
-                        ;; Or a file in current dir?
-                        (member (file-name-base command) (directory-files default-directory))
-                        ;; Or a elisp function?
-                        (functionp (intern command)))
-                       'fshell-valid-command-face
-                     'fshell-invalid-command-face))
+             'font-lock-face (if (or
+                                  ;; Command exists?
+                                  (executable-find command)
+                                  ;; Or command is an alias?
+                                  ;; TODO
+                                  ;; (seq-contains (eshell-alias-completions "") command)
+                                  ;; Or  ../. ?
+                                  (or (equal command "..")
+                                      (equal command ".")
+                                      (equal command "exit"))
+                                  ;; Or a file in current dir?
+                                  (member (file-name-base command) (directory-files default-directory))
+                                  ;; Or a elisp function?
+                                  (functionp (intern command)))
+                                 'fshell-valid-command-face
+                               'fshell-invalid-command-face))
             (put-text-property beg end 'rear-nonsticky t)
             command))))))
 
