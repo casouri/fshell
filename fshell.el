@@ -6,6 +6,7 @@
 
 ;;; Commentary:
 ;;
+;; Some extra features on top of M-x shell, YMMV.
 
 ;;; Code:
 ;;
