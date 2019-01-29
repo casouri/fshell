@@ -110,7 +110,7 @@ respectively."
     (lambda (str)
       (string-trim (substring-no-properties str)))
     (append
-     (ring-elements shell-command-history)
+     (ring-elements comint-input-ring)
      (fsh-parse-bash-history)
      (fsh-parse-zsh-history)))))
 
@@ -143,13 +143,17 @@ respectively."
     (let* ((point-min (point-min))
            (input-start
             (save-excursion
-              (beginning-of-line)
-              (while (and (not (looking-at-p fshell-prompt-regexp))
-                          (not (eq point-min (point))))
-                (forward-line -1))
-              (when (eq point-min (point))
-                (throw 'no-prompt 'stop))
-              (fshell-bol)))
+              (let ((inhibit-field-text-motion t))
+                ;; disable field and go to real beg of line
+                (beginning-of-line)
+                (while (and (not (looking-at-p fshell-prompt-regexp))
+                            (not (eq point-min (point))))
+                  (forward-line -1))
+                (when (eq point-min (point))
+                  (throw 'no-prompt 'stop)))
+              ;; enable field and go to end of line,
+              ;; now we are at end of prompt/beg of user input
+              (line-end-position)))
            (prefix
             (string-trim-left
              (buffer-substring-no-properties
@@ -222,6 +226,26 @@ history autosuggestions."
                                                     map)
   "The map used on overlay so you can complete with C-f.")
 
+;;;###autoload
+(define-minor-mode fsh-autosuggest-companyless-mode
+  "`fsh-autosuggest-mode' but don't use company as front end."
+  :keymap (make-sparse-keymap)
+  :group 'fsh-autosuggest
+  (when fsh-autosuggest-mode
+    (fsh-autosuggest-mode -1))
+  (if fsh-autosuggest-companyless-mode
+      (progn (add-hook 'post-command-hook #'fsh-autosuggest--companyless-post-command-hook t t)
+             (add-hook 'company-completion-started-hook #'fsh-autosuggest-companyless-mode-off-hook t t)
+             (add-hook 'company-completion-cancelled-hook #'fsh-autosuggest-companyless-mode-on-hook t t)
+             (add-hook 'company-completion-finished-hook #'fsh-autosuggest-companyless-mode-on-hook t t))
+    (remove-hook 'post-command-hook #'fsh-autosuggest--companyless-post-command-hook t)
+    (remove-hook 'company-completion-started-hook #'fsh-autosuggest-companyless-mode-off-hook t)
+    (remove-hook 'company-completion-cancelled-hook #'fsh-autosuggest-companyless-mode-on-hook t)
+    (remove-hook 'company-completion-finished-hook #'fsh-autosuggest-companyless-mode-on-hook t)
+    ;; clean up overlay and binding
+    (fsh-autosuggest--companyless-cleanup)))
+
+
 (defun fsh-autosuggest--companyless-cleanup ()
   "Remove overlay and keybinding."
   (when fsh-autosuggest--companyless-overlay
@@ -232,7 +256,7 @@ history autosuggestions."
 
 (defun fsh-autosuggest--companyless-post-command-hook ()
   "Add autosuggest to overlay."
-  (when (and fshell-mode
+  (when (and (eq major-mode 'fshell-mode)
              (not (minibufferp)))
     ;; remove overlay and later (if needed) create a new one
     (fsh-autosuggest--companyless-cleanup)
@@ -269,30 +293,11 @@ history autosuggestions."
 (defun fsh-autosuggest--companyless-complete ()
   "Insert the auto suggestion."
   (interactive)
-  (when (and fshell-mode
+  (when (and (eq major-mode 'fshell-mode)
              fsh-autosuggest--companyless-overlay)
     (insert (substring-no-properties
              (or (overlay-get fsh-autosuggest--companyless-overlay 'after-string)
                  "")))))
-
-;;;###autoload
-(define-minor-mode fsh-autosuggest-companyless-mode
-  "`fsh-autosuggest-mode' but don't use company as front end."
-  :keymap (make-sparse-keymap)
-  :group 'fsh-autosuggest
-  (when fsh-autosuggest-mode
-    (fsh-autosuggest-mode -1))
-  (if fsh-autosuggest-companyless-mode
-      (progn (add-hook 'post-command-hook #'fsh-autosuggest--companyless-post-command-hook t t)
-             (add-hook 'company-completion-started-hook #'fsh-autosuggest-companyless-mode-off-hook t t)
-             (add-hook 'company-completion-cancelled-hook #'fsh-autosuggest-companyless-mode-on-hook t t)
-             (add-hook 'company-completion-finished-hook #'fsh-autosuggest-companyless-mode-on-hook t t))
-    (remove-hook 'post-command-hook #'fsh-autosuggest--companyless-post-command-hook t)
-    (remove-hook 'company-completion-started-hook #'fsh-autosuggest-companyless-mode-off-hook t)
-    (remove-hook 'company-completion-cancelled-hook #'fsh-autosuggest-companyless-mode-on-hook t)
-    (remove-hook 'company-completion-finished-hook #'fsh-autosuggest-companyless-mode-on-hook t)
-    ;; clean up overlay and binding
-    (fsh-autosuggest--companyless-cleanup)))
 
 (provide 'fsh-autosuggest)
 

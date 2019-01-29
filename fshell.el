@@ -41,6 +41,9 @@
 (defvar fshell-shell-file-name "zsh"
   "The shell used in fshell-mode.")
 
+(defvar fshell-history-file "~/.fhistory"
+  "Path to the history file of fshell.")
+
 (defvar fshell--which-path (concat (file-name-directory (or load-file-name buffer-file-name))
                                    "fshell-which.sh")
   "Path to `fshell-which.sh'.")
@@ -51,9 +54,10 @@
   (setq-local comint-process-echoes t) ; remove echo
   (setq-local shell-prompt-pattern fshell-prompt-regexp)
   (setq-local comint-prompt-regexp fshell-prompt-regexp)
+  (setq-local comint-input-ring-file-name fshell-history-file)
   (face-remap-set-base 'comint-highlight-prompt :inherit nil :weight 'bold)
   (face-remap-set-base 'comint-highlight-input :weight 'normal)
-  (esh-autosuggest-companyless-mode)
+  (fsh-autosuggest-companyless-mode)
   (add-hook 'post-command-hook #'fshell-validate-command t t)
   (fshell-sync-dir-buffer-name)
   (advice-add #'shell-resync-dirs :after #'fshell-sync-dir-buffer-name)
@@ -62,7 +66,9 @@
     (setq-local company-auto-complete nil)
     (setq-local company-idle-delay 99999999)
     (define-key fshell-mode-map (kbd "<tab>") #'company-complete))
-  (fish-completion-mode))
+  (fish-completion-mode)
+  (comint-read-input-ring)
+  (add-hook 'kill-buffer-hook #'comint-write-input-ring t t))
 
 (define-key fshell-mode-map (kbd "C-c C-l") #'fshell-clear-buffer)
 (define-key fshell-mode-map (kbd "C-c C-b") #'fshell-switch-buffer)
@@ -90,7 +96,6 @@
     (insert (format "#!%s\nwhich $1" (executable-find fshell-shell-file-name)))
     (write-region 1 (1+ (buffer-size)) fshell--which-path))
   nil)
-
 
 ;;;; Commands
 
