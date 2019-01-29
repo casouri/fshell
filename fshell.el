@@ -50,24 +50,34 @@
 
 (define-derived-mode fshell-mode shell-mode
   "fshell" "Fake shell."
-  (fshell--prepare-which)
+  ;; comint setting
   (setq-local comint-process-echoes t) ; remove echo
   (setq-local shell-prompt-pattern fshell-prompt-regexp)
   (setq-local comint-prompt-regexp fshell-prompt-regexp)
   (setq-local comint-input-ring-file-name fshell-history-file)
+  ;; disable prompt highlight, bold instead
   (face-remap-set-base 'comint-highlight-prompt :inherit nil :weight 'bold)
+  ;; don't bold user input
   (face-remap-set-base 'comint-highlight-input :weight 'normal)
+  ;; auto suggest
   (fsh-autosuggest-companyless-mode)
+  ;; validate command
+  (fshell--prepare-which)
   (add-hook 'post-command-hook #'fshell-validate-command t t)
+  ;; sync pwd
   (fshell-sync-dir-buffer-name)
   (advice-add #'shell-resync-dirs :after #'fshell-sync-dir-buffer-name)
+  ;; completion
   (when (featurep 'company)
     (company-mode)
     (setq-local company-auto-complete nil)
     (setq-local company-idle-delay 99999999)
     (define-key fshell-mode-map (kbd "<tab>") #'company-complete))
+  ;; completion fallback
   (fish-completion-mode)
+  ;; load history
   (comint-read-input-ring)
+  ;; save history when kill buffer
   (add-hook 'kill-buffer-hook #'comint-write-input-ring t t))
 
 (define-key fshell-mode-map (kbd "C-c C-l") #'fshell-clear-buffer)
