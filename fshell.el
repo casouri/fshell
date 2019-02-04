@@ -66,7 +66,8 @@
   (add-hook 'post-command-hook #'fshell-validate-command t t)
   ;; sync pwd
   (fshell-sync-dir-buffer-name)
-  (advice-add #'shell-resync-dirs :after #'fshell-sync-dir-buffer-name)
+  ;; (add-function :after (local 'shell-resync-dirs) #'fshell-sync-dir-buffer-name)
+  (add-hook 'post-command-hook #'fshell-sync-dir-buffer-name t t)
   ;; completion
   (when (featurep 'company)
     (company-mode)
@@ -80,11 +81,18 @@
   ;; save history when kill buffer
   (add-hook 'kill-buffer-hook #'comint-write-input-ring t t))
 
-(define-key fshell-mode-map (kbd "C-c C-l") #'fshell-clear-buffer)
+(define-key fshell-mode-map (kbd "C-c C-l") #'comint-clear-buffer)
 (define-key fshell-mode-map (kbd "C-c C-b") #'fshell-switch-buffer)
 
 
 ;;;; Helpers
+
+(defun fshell--send (command)
+  "Send COMMAND to process.
+COMMAND doesn't include newline.
+(In fact, it depends on `comint-input-sender-no-newline')."
+  (funcall comint-input-sender (get-buffer-process (current-buffer))
+           command))
 
 (defun fshell-buffer-list ()
   "Return a list of fshell buffers."
@@ -94,11 +102,9 @@
          'fshell-mode))
    (buffer-list)))
 
-(defun fshell--sloppy-cd (dir)
+(defun fshell--cd (dir)
   "Cd into DIR."
-  (goto-char (buffer-size))
-  (insert "cd " dir)
-  (comint-send-input))
+  (fshell--send (concat "cd " dir)))
 
 (defun fshell--prepare-which ()
   "Prepare the `which' command used to determine command validness."
@@ -154,7 +160,7 @@ creating one."
                                               (car buffer-list))
                                      (message "No valid fshell buffer found, create a new one.")
                                      (fshell-new)))
-                 (fshell--sloppy-cd dir))))
+                 (fshell--cd dir))))
             ;; simply open
             (t (switch-to-buffer (or (car buffer-list)
                                      (fshell-new))))))))
@@ -175,7 +181,7 @@ If DIR is nil, use current directory."
   (interactive)
   (let ((current-dir default-directory))
     (switch-to-buffer (fshell-new))
-    (fshell--sloppy-cd (or dir current-dir))))
+    (run-hooks 'fshell-before-hook)))
 
 (defun fshell-next ()
   "Select next fshell buffer."
@@ -195,12 +201,8 @@ If DIR is nil, use current directory."
                 (not (eq buf (current-buffer))))
       (previous-buffer))))
 
-(defun fshell-clear-buffer ()
-  "Clear fshell buffer."
-  (interactive)
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (comint-send-input)))
+(defalias 'fshell-clear-buffer 'comint-clear-buffer
+  "Clear fshell buffer.")
 
 
 ;;;; Extensions
