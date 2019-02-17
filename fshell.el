@@ -212,38 +212,39 @@ If DIR is nil, use current directory."
 (defun fshell-validate-command ()
   "Validate current command."
   ;; overlay is slow, so we use text property here
-  (save-excursion
-    (let ((inhibit-field-text-motion t))
-      ;; otherwise beginning of line and line end position
-      ;; doesn't work right
-      (beginning-of-line)
-      (let ((match (re-search-forward
-                    (format "%s\\([^ \t\r\n\v\f]*\\)" fshell-prompt-regexp)
-                    (line-end-position)
-                    t)))
-        (when match
-          (let ((beg (match-beginning 1))
-                (end (match-end 1))
-                (command (match-string 1)))
-            (put-text-property
-             beg end
-             'font-lock-face (if (or
-                                  ;; Command exists or is an alias?
-                                  (eq (call-process fshell--which-path nil nil nil command) 0)
-                                  (executable-find command)
-                                  ;; Or  ../. ?
-                                  (or (equal command "..")
-                                      (equal command "."))
-                                  ;; Or a file in current dir?
-                                  (member (file-name-base command) (directory-files default-directory))
-                                  ;; Or a elisp function?
-                                  ;; not valid for fshell
-                                  ;; (functionp (intern command))
-                                  )
-                                 'fshell-valid-command-face
-                               'fshell-invalid-command-face))
-            (put-text-property beg end 'rear-nonsticky t)
-            command))))))
+  (when (eq (point) (point-max))
+    (save-excursion
+      (let ((inhibit-field-text-motion t))
+        ;; otherwise beginning of line and line end position
+        ;; doesn't work right
+        (beginning-of-line)
+        (let ((match (re-search-forward
+                      (format "%s\\([^ \t\r\n\v\f]*\\)" fshell-prompt-regexp)
+                      (line-end-position)
+                      t)))
+          (when match
+            (let ((beg (match-beginning 1))
+                  (end (match-end 1))
+                  (command (match-string 1)))
+              (put-text-property
+               beg end
+               'font-lock-face (if (or
+                                    ;; Command exists or is an alias?
+                                    (eq (call-process fshell--which-path nil nil nil command) 0)
+                                    (executable-find command)
+                                    ;; Or  ../. ?
+                                    (or (equal command "..")
+                                        (equal command "."))
+                                    ;; Or a file in current dir?
+                                    (member (file-name-base command) (directory-files default-directory))
+                                    ;; Or a elisp function?
+                                    ;; not valid for fshell
+                                    ;; (functionp (intern command))
+                                    )
+                                   'fshell-valid-command-face
+                                 'fshell-invalid-command-face))
+              (put-text-property beg end 'rear-nonsticky t)
+              command)))))))
 
 ;;;;; Sync buffer name with current directory
 
