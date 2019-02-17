@@ -104,7 +104,8 @@ COMMAND doesn't include newline.
 
 (defun fshell--cd (dir)
   "Cd into DIR."
-  (fshell--send (concat "cd " dir)))
+  (fshell--send (concat "cd " dir))
+  (cd dir))
 
 (defun fshell--prepare-which ()
   "Prepare the `which' command used to determine command validness."
