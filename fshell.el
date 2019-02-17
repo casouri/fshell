@@ -256,7 +256,7 @@ If DIR is nil, use current directory."
 
 ;;;; Intergration
 
-(add-hook 'electric-indent-functions (lambda () (when (eq major-mode 'fshell-mode) 'no-indent)))
+(add-hook 'electric-indent-functions (lambda (_) (when (eq major-mode 'fshell-mode) 'no-indent)))
 
 (provide 'fshell)
 
