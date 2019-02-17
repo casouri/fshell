@@ -254,6 +254,10 @@ If DIR is nil, use current directory."
   (rename-buffer (format "fshell @ %s" default-directory)
                  t))
 
+;;;; Intergration
+
+(add-hook 'electric-indent-functions (lambda () (when (eq major-mode 'fshell-mode) 'no-indent)))
+
 (provide 'fshell)
 
 ;;; fshell.el ends here
