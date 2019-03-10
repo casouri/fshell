@@ -83,7 +83,8 @@
 
 (define-key fshell-mode-map (kbd "C-c C-l") #'comint-clear-buffer)
 (define-key fshell-mode-map (kbd "C-c C-b") #'fshell-switch-buffer)
-
+(define-key fshell-mode-map (kbd "M-p") #'comint-previous-matching-input-from-input)
+(define-key fshell-mode-map (kbd "M-n") #'comint-next-matching-input-from-input)
 
 ;;;; Helpers
 
