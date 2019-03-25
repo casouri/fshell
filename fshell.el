@@ -70,7 +70,7 @@
   ;; (add-function :after (local 'shell-resync-dirs) #'fshell-sync-dir-buffer-name)
   (add-hook 'post-command-hook #'fshell-sync-dir-buffer-name t t)
   ;; completion
-  (when (featurep 'company)
+  (when (require 'company nil t)
     (company-mode)
     (setq-local company-auto-complete nil)
     (setq-local company-idle-delay 99999999)
