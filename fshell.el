@@ -233,19 +233,16 @@ If DIR is nil, use current directory."
                   (command (match-string 1)))
               (put-text-property
                beg end
-               'font-lock-face (if (or
-                                    ;; Command exists or is an alias?
-                                    (eq (call-process fshell--which-path nil nil nil command) 0)
-                                    (executable-find command)
-                                    ;; Or  ../. ?
-                                    (or (equal command "..")
-                                        (equal command "."))
-                                    ;; Or a file in current dir?
-                                    (member (file-name-base command) (directory-files default-directory))
-                                    ;; Or a elisp function?
-                                    ;; not valid for fshell
-                                    ;; (functionp (intern command))
-                                    )
+               'font-lock-face (if (or (executable-find command)
+                                       ;; Or  ../. ?
+                                       (or (equal command "..")
+                                           (equal command "."))
+                                       ;; Or a file in current dir?
+                                       (member (file-name-base command) (directory-files default-directory))
+                                       ;; Command exists (even though ‘executable-find’ returns nil) or is an alias?
+                                       ;; this is slow so we put it at the end
+                                       (eq (call-process fshell--which-path nil nil nil command) 0)
+                                       )
                                    'fshell-valid-command-face
                                  'fshell-invalid-command-face))
               (put-text-property beg end 'rear-nonsticky t)
