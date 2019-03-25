@@ -80,7 +80,9 @@
   ;; load history
   (comint-read-input-ring)
   ;; save history when kill buffer
-  (add-hook 'kill-buffer-hook #'comint-write-input-ring t t))
+  (add-hook 'kill-buffer-hook #'comint-write-input-ring t t)
+  ;; prevent indentation, otherwise echo is not cleaned properly
+  (setq-local electric-indent-inhibit t))
 
 (define-key fshell-mode-map (kbd "C-c C-l") #'comint-clear-buffer)
 (define-key fshell-mode-map (kbd "C-c C-b") #'fshell-switch-buffer)
@@ -255,10 +257,6 @@ If DIR is nil, use current directory."
   "Change fshell buffer name by directory change."
   (rename-buffer (format "fshell @ %s" default-directory)
                  t))
-
-;;;; Intergration
-
-(add-hook 'electric-indent-functions (lambda (_) (when (eq major-mode 'fshell-mode) 'no-indent)))
 
 (provide 'fshell)
 
