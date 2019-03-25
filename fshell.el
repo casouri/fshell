@@ -75,6 +75,11 @@
     (setq-local company-auto-complete nil)
     (setq-local company-idle-delay 99999999)
     (define-key fshell-mode-map (kbd "<tab>") #'company-complete))
+  ;; xterm-256 color
+  (when (require 'xterm-color nil t)
+    (setq-local comint-output-filter-functions
+                (remove 'ansi-color-process-output comint-output-filter-functions))
+    (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t))
   ;; completion fallback
   (fish-completion-mode)
   ;; load history
