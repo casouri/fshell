@@ -165,7 +165,7 @@ creating one."
                ;; or create a new one
                (if buffer-with-same-dir
                    (switch-to-buffer buffer-with-same-dir)
-                 (switch-to-buffer (if (eq arg 4)
+                 (switch-to-buffer (if (eq arg 16)
                                        (progn (message "No valid fshell buffer found, reuse one.")
                                               (car buffer-list))
                                      (message "No valid fshell buffer found, create a new one.")
