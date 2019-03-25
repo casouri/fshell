@@ -52,6 +52,7 @@
   "fshell" "Fake shell."
   ;; comint setting
   (setq-local comint-process-echoes t) ; remove echo
+  (setq-local comint-redirect-echo-input t) ; remove echo
   (setq-local shell-prompt-pattern fshell-prompt-regexp)
   (setq-local comint-prompt-regexp fshell-prompt-regexp)
   (setq-local comint-input-ring-file-name fshell-history-file)
