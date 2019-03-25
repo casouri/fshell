@@ -98,10 +98,8 @@
 
 (defun fshell--send (command)
   "Send COMMAND to process.
-COMMAND doesn't include newline.
-(In fact, it depends on `comint-input-sender-no-newline')."
-  (funcall comint-input-sender (get-buffer-process (current-buffer))
-           command))
+COMMAND doesn't include newline."
+  (process-send-string nil (concat command "\n")))
 
 (defun fshell-buffer-list ()
   "Return a list of fshell buffers."
